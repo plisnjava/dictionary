@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Словник</title>
+<meta name="description" content="Особистий словник термінів з навчання. Дані зберігаються лише на цьому пристрої.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17151f" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Словник">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Literata:ital,opsz,wght@1,7..72,400&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Layout: dalmatian-fur background; every piece of text sits on an opaque white sticker (title card, form, entry cards). Form pinned left, entries right. Four accent colors from the poster palette: red, yellow, pink, sky. */
+:root {
+  --bg: #ffffff;
+  --fur: var(--fur-a);
+  --surface: #ffffff;
+  --field: #f1f3fb;
+  --ink: #14122b;
+  --muted: #4b4a70;
+  --line: #14122b;
+  --shadow: #14122b;
+  --blue: #2a4be0;
+  --red: #ff5a47;
+  --yellow: #ffd21f;
+  --pink: #ff6fb5;
+  --sky: #7cc4ef;
+  --green: #3fd47e;
+  --on-bright: #14122b;
+  --danger: #c4162a;
+  --f-display: "Unbounded", "Onest", system-ui, sans-serif;
+  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-serif: "Literata", "Georgia", serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17151f; --fur: var(--fur-b); --surface: #232033; --field: #17151f; --ink: #ffffff; --muted: #c3c0dd;
+    --line: #e4e1f5; --shadow: #000000; --blue: #6d86ff; --danger: #ff8a95;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17151f; --fur: var(--fur-b); --surface: #232033; --field: #17151f; --ink: #ffffff; --muted: #c3c0dd;
+  --line: #e4e1f5; --shadow: #000000; --blue: #6d86ff; --danger: #ff8a95;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--bg);
+  background-image: var(--fur);
+  background-size: 560px 560px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-block: 24px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
+
+.hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; background: var(--surface); border: 3px solid var(--line); border-radius: 24px; box-shadow: 6px 6px 0 var(--shadow); padding: 18px 24px; }
+h1 { font-family: var(--f-display); font-size: clamp(2rem, 8vw, 3rem); line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -.02em; }
+h1 span { background: linear-gradient(transparent 62%, var(--yellow) 62%); color: var(--ink); padding: 0 .1em; }
+:root[data-theme="dark"] h1 span { background: linear-gradient(transparent 62%, #7a6600 62%); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) h1 span { background: linear-gradient(transparent 62%, #7a6600 62%); } }
+.lede { margin: 4px 0 0; color: var(--muted); font-weight: 500; }
+.count { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--on-bright); background: var(--yellow); border: 3px solid var(--line); border-radius: 999px; padding: 4px 14px; font-variant-numeric: tabular-nums; }
+.count:empty { display: none; }
+
+.desk { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 860px) { .desk { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 36px; } }
+
+/* form */
+.composer { background: var(--surface); border: 3px solid var(--line); border-radius: 24px; box-shadow: 8px 8px 0 var(--pink); padding: 20px; display: grid; gap: 14px; }
+@media (min-width: 860px) { .composer { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); } }
+.composer h2 { font-family: var(--f-display); font-size: 1.1rem; margin: 0; }
+.field { display: grid; gap: 5px; min-width: 0; }
+label, .label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+input[type="text"], input[type="search"], textarea {
+  font: inherit; font-size: 16px; color: var(--ink); background: var(--field);
+  border: 3px solid var(--line); border-radius: 14px; padding: 9px 13px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 84px; line-height: 1.45; }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
+input:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 4px 4px 0 var(--pink); }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 3px; }
+input:focus-visible, textarea:focus-visible { outline: none; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; }
+button { font: inherit; cursor: pointer; }
+.btn { border: 3px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 14px; padding: 9px 18px; font-weight: 600; box-shadow: 4px 4px 0 var(--shadow); transition: transform .08s, box-shadow .08s; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--shadow); }
+.btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--shadow); }
+.btn.primary { background: var(--pink); color: var(--on-bright); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.hint { display: inline-block; justify-self: start; background: var(--surface); border: 3px solid var(--line); border-radius: 14px; padding: 8px 14px; font-size: 14px; font-weight: 500; margin: 0; }
+
+/* toolbar */
+.toolbar { display: grid; gap: 12px; margin-bottom: 8px; }
+.toolrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolrow .grow { flex: 1 1 200px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 3px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 2px 14px; font-size: 13px; font-weight: 600; box-shadow: 3px 3px 0 var(--shadow); }
+.chip:hover { transform: translate(-1px, -1px); }
+.chip[aria-pressed="true"] { background: var(--yellow); color: var(--on-bright); }
+.toggle { display: inline-flex; align-items: center; gap: 9px; border: 3px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 14px 4px 6px; font-size: 13px; font-weight: 600; box-shadow: 3px 3px 0 var(--shadow); }
+.toggle i { width: 36px; height: 20px; border-radius: 999px; border: 3px solid var(--line); background: var(--field); position: relative; flex: none; transition: background .15s; }
+.toggle i::after { content: ""; position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
+.toggle[aria-pressed="true"] i { background: var(--green); }
+.toggle[aria-pressed="true"] i::after { transform: translateX(16px); background: var(--on-bright); }
+
+/* dictionary */
+#list { display: grid; gap: 18px; }
+.c0 { --c: var(--red); } .c1 { --c: var(--yellow); } .c2 { --c: var(--pink); } .c3 { --c: var(--sky); }
+.letter { font-family: var(--f-display); font-weight: 700; font-size: 1.4rem; margin: 10px 0 0; width: 56px; height: 52px; display: grid; place-items: center;
+  background: var(--c); color: var(--on-bright); border: 3px solid var(--line); border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%; box-shadow: 4px 4px 0 var(--shadow); transform: rotate(-5deg); }
+.entry { position: relative; display: grid; gap: 8px; padding: 18px 20px 14px; background: var(--surface); border: 3px solid var(--line); border-radius: 22px; box-shadow: 6px 6px 0 var(--shadow); transition: transform .12s, box-shadow .12s; }
+.entry:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--shadow); }
+.entry.pop { animation: pop .6s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop { 0% { transform: scale(.92) rotate(-1.5deg); } 60% { transform: scale(1.02); } 100% { transform: none; } }
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.term { font-family: var(--f-display); font-weight: 700; font-size: 1.1rem; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+.term span { background: var(--c); color: var(--on-bright); -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px .35em; border-radius: 8px; }
+.tag { font-family: var(--f-mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink); background: var(--field); border: 2px solid var(--line); border-radius: 999px; padding: 1px 10px; }
+.def, .note { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note { color: var(--muted); font-size: 14px; }
+.ex { margin: 0; font-family: var(--f-serif); font-style: italic; color: var(--muted); overflow-wrap: anywhere; white-space: pre-wrap; }
+.reveal { justify-self: start; border: 3px dashed var(--blue); background: transparent; color: var(--ink); border-radius: 14px; padding: 6px 16px; font-size: 14px; font-weight: 600; }
+.reveal:hover { background: var(--pink); border-style: solid; color: var(--on-bright); }
+.acts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.link { background: none; border: 0; padding: 2px 0; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.link:hover { color: var(--ink); }
+.link.danger { color: var(--danger); }
+.confirm { font-size: 13px; font-weight: 600; color: var(--danger); }
+
+.empty { border: 3px solid var(--line); border-radius: 24px; box-shadow: 6px 6px 0 var(--shadow); padding: 28px 22px; display: grid; gap: 12px; justify-items: start; background: var(--surface); }
+.empty h3 { font-family: var(--f-display); margin: 0; font-size: 1.1rem; }
+.empty p { margin: 0; color: var(--muted); max-width: 52ch; }
+#status { min-height: 1.4em; font-size: 13px; color: var(--muted); margin: 0; }
+#status.err { color: var(--danger); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* safe areas for the home-screen app */
+body { padding-top: calc(24px + env(safe-area-inset-top, 0px)); padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent; }
+
+/* backup */
+.backup { border-top: 3px dashed var(--line); padding-top: 14px; display: grid; gap: 10px; }
+.backup .row .btn { padding: 7px 14px; font-size: 14px; box-shadow: 3px 3px 0 var(--shadow); }
+.backup-info { margin: 0; font-size: 13px; color: var(--muted); }
+.backup-info.warn { color: var(--danger); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1><span>Словник</span></h1>
+      <p class="lede">Слова з навчання, їхні визначення й приклади.</p>
+    </div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+
+  <div class="desk">
+    <form class="composer" id="form" autocomplete="off">
+      <h2 id="form-title">Новий термін</h2>
+      <div class="field">
+        <label for="f-term">Термін</label>
+        <input type="text" id="f-term" required maxlength="120" placeholder="Наприклад: ентропія">
+      </div>
+      <div class="field">
+        <label for="f-def">Визначення</label>
+        <textarea id="f-def" required maxlength="2000" placeholder="Що це означає своїми словами"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-ex">Приклад</label>
+        <input type="text" id="f-ex" maxlength="500" placeholder="Речення або ситуація, де це працює">
+      </div>
+      <div class="field">
+        <label for="f-sub">Предмет</label>
+        <input type="text" id="f-sub" maxlength="60" list="subjects" placeholder="Фізика, Історія, Право…">
+        <datalist id="subjects"></datalist>
+      </div>
+      <div class="field">
+        <label for="f-note">Примітки</label>
+        <textarea id="f-note" maxlength="2000" style="min-height:60px" placeholder="Де зустрілося, з чим пов’язано, що уточнити"></textarea>
+      </div>
+      <div class="row">
+        <button class="btn primary" type="submit" id="f-save">Додати</button>
+        <button class="btn" type="button" id="f-cancel" hidden>Скасувати</button>
+      </div>
+      <p id="status" role="status"></p>
+
+      <div class="backup">
+        <span class="label">Резервна копія</span>
+        <div class="row">
+          <button class="btn" type="button" id="b-export">Зберегти копію</button>
+          <button class="btn" type="button" id="b-import">Відновити з файлу</button>
+          <input type="file" id="b-file" accept=".json,application/json" hidden>
+        </div>
+        <p class="backup-info" id="b-info"></p>
+      </div>
+    </form>
+
+    <section aria-label="Список термінів">
+      <div class="toolbar">
+        <div class="toolrow">
+          <div class="grow"><input type="search" id="q" placeholder="Пошук за словом, визначенням, прикладом" aria-label="Пошук"></div>
+          <button class="toggle" type="button" id="study" aria-pressed="false"><i></i>Повторення</button>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Фільтр за предметом"></div>
+      </div>
+      <div id="list"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = "slovnyk-terminiv-v1";
+  var BACKUP_KEY = "slovnyk-last-backup";
+  var SAMPLES = [
+    { term: "Фотосинтез", subject: "Біологія", definition: "Процес, під час якого рослини перетворюють світлову енергію на хімічну й утворюють глюкозу з води та вуглекислого газу.", example: "Фотосинтез відбувається в хлоропластах листка.", notes: "" },
+    { term: "Інфляція", subject: "Економіка", definition: "Стійке зростання загального рівня цін, через яке за ту саму суму можна купити менше товарів.", example: "Через інфляцію 100 гривень цього року купують менше, ніж торік.", notes: "" },
+    { term: "Алгоритм", subject: "Інформатика", definition: "Скінченна послідовність чітких кроків, яка веде до розв’язання задачі.", example: "Рецепт борщу працює як алгоритм: кроки йдуть у фіксованому порядку.", notes: "" }
+  ];
+
+  /* dalmatian fur: seamless tile of irregular spots, one for each theme */
+  (function () {
+    var W = 560;
+    var shapes = {
+      a: "M0,-34 C22,-40 46,-22 44,2 C42,28 18,42 -6,36 C-30,30 -46,10 -38,-14 C-32,-30 -16,-32 0,-34Z",
+      b: "M-20,-18 C-6,-30 20,-26 26,-8 C32,12 16,28 -4,26 C-24,24 -34,0 -20,-18Z",
+      c: "M-44,-8 C-34,-26 -4,-30 20,-24 C44,-18 52,6 38,20 C22,34 -14,32 -34,22 C-48,14 -52,0 -44,-8Z",
+      d: "M-10,-12 C2,-16 14,-8 14,4 C14,16 0,20 -8,14 C-16,8 -18,-6 -10,-12Z"
+    };
+    var spots = [[90, 80, 20, 1.0, "a"], [260, 50, -30, 0.7, "b"], [430, 110, 60, 1.1, "c"], [170, 210, 100, 0.6, "d"], [330, 250, 10, 1.0, "a"],
+      [500, 330, -50, 0.8, "b"], [60, 330, 40, 1.2, "c"], [220, 400, -20, 0.9, "b"], [400, 450, 80, 0.6, "d"], [110, 500, 0, 0.8, "a"],
+      [300, 540, 30, 1.0, "c"], [545, 60, 15, 0.9, "b"], [20, 190, -40, 0.7, "d"], [480, 520, 70, 0.7, "a"], [350, 350, 0, 0.45, "d"], [190, 120, 0, 0.4, "d"]];
+    var dots = [[40, 60, 4], [150, 280, 3], [240, 170, 5], [380, 20, 3], [470, 230, 4], [310, 470, 3], [30, 440, 5], [520, 440, 3], [210, 310, 3]];
+    function tile(spot, base) {
+      var s = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + W + '" height="' + W + '" viewBox="0 0 ' + W + " " + W + '"><rect width="' + W + '" height="' + W + '" fill="' + base + '"/><defs>';
+      Object.keys(shapes).forEach(function (k) { s += '<path id="' + k + '" d="' + shapes[k] + '"/>'; });
+      s += '</defs><g fill="' + spot + '">';
+      [-W, 0, W].forEach(function (dx) {
+        [-W, 0, W].forEach(function (dy) {
+          spots.forEach(function (p) {
+            var x = p[0] + dx, y = p[1] + dy;
+            if (x > -100 && x < W + 100 && y > -100 && y < W + 100) s += '<use xlink:href="#' + p[4] + '" transform="translate(' + x + " " + y + ") rotate(" + p[2] + ") scale(" + p[3] + ')"/>';
+          });
+          dots.forEach(function (p) {
+            var x = p[0] + dx, y = p[1] + dy;
+            if (x > -20 && x < W + 20 && y > -20 && y < W + 20) s += '<circle cx="' + x + '" cy="' + y + '" r="' + p[2] + '"/>';
+          });
+        });
+      });
+      return s + "</g></svg>";
+    }
+    function url(spot, base) { return 'url("data:image/svg+xml,' + encodeURIComponent(tile(spot, base)) + '")'; }
+    var root = document.documentElement.style;
+    root.setProperty("--fur-a", url("#17151f", "#ffffff"));
+    root.setProperty("--fur-b", url("#2e2b3f", "#17151f"));
+  })();
+
+  var items = [];
+  var loaded = false;
+  var editingId = null;
+  var confirmId = null;
+  var justAdded = null;
+  var filterSubject = "";
+  var query = "";
+  var study = false;
+  var revealed = {};
+
+  var $ = function (id) { return document.getElementById(id); };
+  var el = { form: $("form"), title: $("form-title"), term: $("f-term"), def: $("f-def"), ex: $("f-ex"), sub: $("f-sub"), note: $("f-note"),
+    save: $("f-save"), cancel: $("f-cancel"), status: $("status"), subjects: $("subjects"), chips: $("chips"), list: $("list"),
+    q: $("q"), study: $("study"), count: $("count"), exp: $("b-export"), imp: $("b-import"), file: $("b-file"), info: $("b-info") };
+
+  var collator = new Intl.Collator("uk", { sensitivity: "base" });
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function terms(n) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + " термін";
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return n + " терміни";
+    return n + " термінів";
+  }
+  function setStatus(msg, isErr) { el.status.textContent = msg || ""; el.status.className = isErr ? "err" : ""; }
+  function colorClass(s) { var h = 0; s = String(s || ""); for (var i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) % 4; return "c" + h; }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+
+  /* ---------- storage (this device only) ---------- */
+  function load() {
+    try { var raw = lsGet(KEY); items = raw ? JSON.parse(raw) : []; } catch (e) { items = []; }
+    if (!Array.isArray(items)) items = [];
+    loaded = true;
+  }
+  function persist() {
+    if (!lsSet(KEY, JSON.stringify(items))) { setStatus("Не вдалося зберегти на пристрої.", true); return false; }
+    return true;
+  }
+  var store = {
+    save: function (it) {
+      var i = items.findIndex(function (x) { return x.id === it.id; });
+      if (i >= 0) items[i] = it; else items.push(it);
+      persist(); render(); updateBackupInfo(); return Promise.resolve();
+    },
+    remove: function (id) { items = items.filter(function (x) { return x.id !== id; }); persist(); render(); updateBackupInfo(); return Promise.resolve(); }
+  };
+  /* ask the browser not to evict our data under storage pressure */
+  if (navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch (e) {} }
+
+  /* ---------- backup: export / import JSON ---------- */
+  function fmtDate(ts) {
+    try { return new Date(ts).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" }).replace(/\s*р\.?$/, ""); } catch (e) { return ""; }
+  }
+  function updateBackupInfo() {
+    var last = Number(lsGet(BACKUP_KEY)) || 0;
+    var newest = items.reduce(function (m, it) { return Math.max(m, it.updatedAt || 0); }, 0);
+    if (!items.length) { el.info.textContent = "Файл копії можна зберегти у «Файли» або iCloud Drive."; el.info.className = "backup-info"; return; }
+    if (!last) { el.info.textContent = "Копію ще не зберігали."; el.info.className = "backup-info warn"; return; }
+    var stale = newest > last;
+    el.info.textContent = "Остання копія: " + fmtDate(last) + (stale ? ". Відтоді були зміни." : ".");
+    el.info.className = "backup-info" + (stale ? " warn" : "");
+  }
+  function stamp() {
+    var d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  el.exp.addEventListener("click", async function () {
+    if (!items.length) { setStatus("Словник порожній, зберігати нічого.", true); return; }
+    var data = JSON.stringify({ app: "slovnyk", version: 1, exportedAt: new Date().toISOString(), items: items }, null, 2);
+    var name = "slovnyk-" + stamp() + ".json";
+    var blob = new Blob([data], { type: "application/json" });
+    var touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    try {
+      var file = typeof File === "function" ? new File([blob], name, { type: "application/json" }) : null;
+      if (touch && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Словник: резервна копія" });
+      } else {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }
+      lsSet(BACKUP_KEY, String(Date.now()));
+      setStatus("Копію збережено: " + name);
+    } catch (err) {
+      if (err && err.name === "AbortError") { setStatus(""); return; }
+      setStatus("Не вдалося зберегти копію.", true);
+    }
+    updateBackupInfo();
+  });
+  el.imp.addEventListener("click", function () { el.file.value = ""; el.file.click(); });
+  el.file.addEventListener("change", function () {
+    var f = el.file.files && el.file.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onerror = function () { setStatus("Не вдалося прочитати файл.", true); };
+    reader.onload = function () {
+      var parsed;
+      try { parsed = JSON.parse(String(reader.result)); } catch (e) { setStatus("Це не файл копії словника.", true); return; }
+      var list = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.items) ? parsed.items : null;
+      if (!list) { setStatus("Це не файл копії словника.", true); return; }
+      var added = 0, updated = 0, skipped = 0;
+      list.forEach(function (raw) {
+        if (!raw || typeof raw.term !== "string" || typeof raw.definition !== "string" || !raw.term.trim() || !raw.definition.trim()) { skipped++; return; }
+        var it = {
+          id: typeof raw.id === "string" && raw.id ? raw.id : newId(),
+          term: raw.term.trim().slice(0, 120), definition: raw.definition.trim().slice(0, 2000),
+          example: String(raw.example || "").slice(0, 500), subject: String(raw.subject || "").slice(0, 60), notes: String(raw.notes || "").slice(0, 2000),
+          createdAt: Number(raw.createdAt) || Date.now(), updatedAt: Number(raw.updatedAt) || Date.now()
+        };
+        var i = items.findIndex(function (x) { return x.id === it.id; });
+        if (i < 0) { items.push(it); added++; }
+        else if ((items[i].updatedAt || 0) < it.updatedAt) { items[i] = it; updated++; }
+      });
+      if (!persist()) return;
+      render(); updateBackupInfo();
+      var msg = "Відновлено: нових " + added + ", оновлено " + updated + ".";
+      if (skipped) msg += " Пропущено пошкоджених записів: " + skipped + ".";
+      setStatus(msg);
+    };
+    reader.readAsText(f);
+  });
+
+  /* ---------- render ---------- */
+  function matches(it) {
+    if (filterSubject && (it.subject || "") !== filterSubject) return false;
+    if (!query) return true;
+    var hay = [it.term, it.definition, it.example, it.subject, it.notes].join(" ").toLowerCase();
+    return hay.indexOf(query) !== -1;
+  }
+  function render() {
+    var subs = [];
+    items.forEach(function (it) { if (it.subject && subs.indexOf(it.subject) === -1) subs.push(it.subject); });
+    subs.sort(collator.compare);
+    if (filterSubject && subs.indexOf(filterSubject) === -1) filterSubject = "";
+    el.subjects.innerHTML = subs.map(function (s) { return '<option value="' + esc(s) + '">'; }).join("");
+    el.chips.innerHTML = subs.length ? ['<button class="chip" type="button" data-sub="" aria-pressed="' + (filterSubject === "") + '">Усі</button>']
+      .concat(subs.map(function (s) { return '<button class="chip" type="button" data-sub="' + esc(s) + '" aria-pressed="' + (filterSubject === s) + '">' + esc(s) + '</button>'; })).join("") : "";
+
+    var shown = items.filter(matches).sort(function (a, b) { return collator.compare(a.term || "", b.term || ""); });
+    el.count.textContent = !loaded ? "" : (shown.length === items.length ? terms(items.length) : shown.length + " із " + terms(items.length));
+
+    if (!loaded) { el.list.innerHTML = '<p class="hint">Завантажую словник…</p>'; return; }
+    if (!items.length) {
+      el.list.innerHTML = '<div class="empty"><h3>Словник поки порожній</h3><p>Заповніть форму, і перший термін з’явиться тут. Щоб побачити, як виглядає запис, додайте три приклади. Їх можна змінити або видалити.</p><button class="btn primary" type="button" data-act="samples">Додати приклади</button></div>';
+      return;
+    }
+    if (!shown.length) { el.list.innerHTML = '<p class="hint">Нічого не знайдено. Спробуйте інше слово або змініть предмет.</p>'; return; }
+
+    var html = "", last = "";
+    shown.forEach(function (it) {
+      var ch = (it.term || "#").trim().charAt(0).toUpperCase();
+      if (!/\p{L}/u.test(ch)) ch = "#";
+      if (ch !== last) { html += '<h2 class="letter ' + colorClass(ch) + '">' + esc(ch) + "</h2>"; last = ch; }
+      var hidden = study && !revealed[it.id];
+      var body = hidden
+        ? '<button class="reveal" type="button" data-act="reveal" data-id="' + esc(it.id) + '">Показати визначення</button>'
+        : '<p class="def">' + esc(it.definition) + "</p>" +
+          (it.example ? '<p class="ex">' + esc(it.example) + "</p>" : "") +
+          (it.notes ? '<p class="note">' + esc(it.notes) + "</p>" : "");
+      html += '<article class="entry ' + colorClass(it.subject || it.term) + (it.id === justAdded ? " pop" : "") + '">' +
+        '<div class="head"><h3 class="term"><span>' + esc(it.term) + "</span></h3>" + (it.subject ? '<span class="tag">' + esc(it.subject) + "</span>" : "") + "</div>" +
+        body +
+        '<div class="acts">' + (confirmId === it.id
+          ? '<span class="confirm">Видалити «' + esc(it.term) + '»?</span><button class="link danger" type="button" data-act="del-yes" data-id="' + esc(it.id) + '">Так, видалити</button><button class="link" type="button" data-act="del-no">Залишити</button>'
+          : '<button class="link" type="button" data-act="edit" data-id="' + esc(it.id) + '">Змінити</button><button class="link" type="button" data-act="del" data-id="' + esc(it.id) + '">Видалити</button>') +
+        "</div></article>";
+    });
+    el.list.innerHTML = html;
+    if (justAdded) { var done = justAdded; setTimeout(function () { if (justAdded === done) justAdded = null; }, 1200); }
+  }
+
+  /* ---------- form ---------- */
+  function resetForm() {
+    editingId = null; el.form.reset();
+    el.title.textContent = "Новий термін"; el.save.textContent = "Додати"; el.cancel.hidden = true;
+  }
+  el.form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var term = el.term.value.trim(), def = el.def.value.trim();
+    if (!term || !def) { setStatus("Введіть термін і визначення.", true); return; }
+    var old = editingId ? items.find(function (x) { return x.id === editingId; }) : null;
+    var it = { id: editingId || newId(), term: term, definition: def, example: el.ex.value.trim(), subject: el.sub.value.trim(), notes: el.note.value.trim(),
+      createdAt: old && old.createdAt ? old.createdAt : Date.now(), updatedAt: Date.now() };
+    el.save.disabled = true;
+    try {
+      if (!old) justAdded = it.id;
+      await store.save(it);
+      setStatus(old ? "Зміни збережено." : "Термін додано.");
+      resetForm(); el.term.focus();
+    } catch (err) {
+      justAdded = null;
+      setStatus("Не вдалося зберегти.", true);
+    }
+    el.save.disabled = false;
+  });
+  el.cancel.addEventListener("click", function () { resetForm(); setStatus(""); });
+
+  /* ---------- list actions ---------- */
+  el.list.addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-act]");
+    if (!b) return;
+    var act = b.getAttribute("data-act"), id = b.getAttribute("data-id");
+    if (act === "reveal") { revealed[id] = true; render(); }
+    else if (act === "edit") {
+      var it = items.find(function (x) { return x.id === id; });
+      if (!it) return;
+      editingId = id; el.term.value = it.term || ""; el.def.value = it.definition || ""; el.ex.value = it.example || ""; el.sub.value = it.subject || ""; el.note.value = it.notes || "";
+      el.title.textContent = "Редагування"; el.save.textContent = "Зберегти"; el.cancel.hidden = false; setStatus("");
+      el.form.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" }); el.term.focus();
+    }
+    else if (act === "del") { confirmId = id; render(); }
+    else if (act === "del-no") { confirmId = null; render(); }
+    else if (act === "del-yes") {
+      confirmId = null;
+      try { await store.remove(id); if (editingId === id) resetForm(); setStatus("Термін видалено."); }
+      catch (err) { setStatus("Не вдалося видалити. Спробуйте ще раз.", true); }
+      render();
+    }
+    else if (act === "samples") {
+      b.disabled = true;
+      for (var i = 0; i < SAMPLES.length; i++) { var s = SAMPLES[i]; await store.save({ id: newId(), term: s.term, definition: s.definition, example: s.example, subject: s.subject, notes: s.notes, createdAt: Date.now(), updatedAt: Date.now() }); }
+      setStatus("");
+    }
+  });
+
+  el.chips.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-sub]"); if (!b) return;
+    filterSubject = b.getAttribute("data-sub"); render();
+  });
+  el.q.addEventListener("input", function () { query = el.q.value.trim().toLowerCase(); render(); });
+  el.study.addEventListener("click", function () {
+    study = !study; revealed = {}; el.study.setAttribute("aria-pressed", String(study)); render();
+  });
+
+  load();
+  render();
+  updateBackupInfo();
+
+  /* offline support */
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
